@@ -8,35 +8,31 @@ const { GraphQLSchema } = graphql;
 const { query } = require("./schemas/queries");
 const { mutation } = require("./schemas/mutations");
 
-const jwtMiddleWare = expressJwt({ secret: process.env.JwtSecret, algorithms: ['HS256']}).unless({ path: ['/login'] });
+const port = process.env.PORT || 3000;
+const app = express(port);
 
 const schema = new GraphQLSchema({
   query,
   mutation
 });
 
-const port = process.env.PORT || 3000;
-const app = express(port);
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-//app.use(jwtMiddleWare); // comment for testing
+const jwtMiddleWare = expressJwt({ secret: process.env.JwtSecret, algorithms: ['HS256']}).unless({ path: ['/login'] });
 
 const errorMW = function errorHandler(err, req, res, next) {
-  if (typeof (err) === 'string') {
-    // custom application error
-    return res.status(400).json({ message: err });
-  }
-
-  if (err.name === 'UnauthorizedError') {
-    // jwt authentication error
-    return res.status(401).json({ message: 'Invalid Token' });
-  }
-
-  // default to 500 server error
+  console.error(err.stack);
   return res.status(500).json({ message: err.message });
 }
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(jwtMiddleWare);
+app.use(
+  '/',
+  expressGraphQL({
+    schema: schema,
+    graphiql: true
+  })
+);
 app.use(errorMW);
 
 app.get('/login', (req, res) => {
@@ -47,13 +43,5 @@ app.get('/login', (req, res) => {
 	const token = jwt.sign(login, process.env.JwtSecret);
 	res.send({ token });
 });
-
-app.use(
-  '/',
-  expressGraphQL({
-    schema: schema,
-    graphiql: true
-  })
-);
 
 app.listen(port);
