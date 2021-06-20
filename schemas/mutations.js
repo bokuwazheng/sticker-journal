@@ -7,38 +7,6 @@ const RootMutation = new GraphQLObjectType({
   name: "RootMutationType",
   type: "Mutation",
   fields: {
-    addSender: {
-      type: SenderType,
-      args: {
-        user_id: { type: GraphQLID },
-        first_name: { type: GraphQLString },
-        last_name: { type: GraphQLString },
-        username: { type: GraphQLString },
-        chat_id: { type: GraphQLString }
-      },
-      async resolve(parentValue, args) {
-        const query = `
-          INSERT INTO sender 
-            (user_id, first_name, last_name, username, chat_id) 
-            VALUES 
-            ($1, $2, $3, $4, $5) 
-          RETURNING *
-          `;
-        const values = [
-          args.user_id,
-          args.first_name,
-          args.last_name,
-          args.username,
-          args.chat_id
-        ];
-
-        try {
-          return await db.one(query, values);
-        } catch (err) {
-          return err;
-        }
-      }
-    }, 
 
     updateSender: {
       type: SenderType,
@@ -71,7 +39,7 @@ const RootMutation = new GraphQLObjectType({
     }, 
 
     addSender: {
-      type: SuggestionType,
+      type: SenderType,
       args: {
         sender: { type: SenderInput }
       },

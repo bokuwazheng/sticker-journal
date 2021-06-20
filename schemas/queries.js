@@ -6,6 +6,7 @@ const RootQuery = new GraphQLObjectType({
   name: "RootQueryType",
   type: "Query",
   fields: {
+    
     sender: {
       type: SenderType,
       args: { user_id: { type: GraphQLID } },
