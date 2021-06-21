@@ -25,14 +25,26 @@ const errorMW = function errorHandler(err, req, res, next) {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(jwtMiddleWare);
-app.use(
-  '/graphql',
-  expressGraphQL({
-    schema: schema,
-    graphiql: true
-  })
-);
+
+if (process.env.Environment === 'Development') {
+  app.use(
+    '/graphql',
+    expressGraphQL({
+      schema: schema,
+      graphiql: true
+    })
+  );
+}
+else {
+  app.use(jwtMiddleWare);
+  app.use(
+    '/graphql',
+    expressGraphQL({
+      schema: schema
+    })
+  );
+}
+
 app.use(errorMW);
 
 app.get('/login', (req, res) => {
