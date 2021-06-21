@@ -26,6 +26,14 @@ const errorMW = function errorHandler(err, req, res, next) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(jwtMiddleWare);
+app.use(
+  '/graphql',
+  expressGraphQL({
+    schema: schema,
+    graphiql: true
+  })
+);
+app.use(errorMW);
 
 app.get('/login', (req, res) => {
   const { login, password } = req.body;
@@ -35,14 +43,5 @@ app.get('/login', (req, res) => {
 	const token = jwt.sign(login, process.env.JwtSecret);
 	res.send({ token });
 });
-
-app.use(
-  '/',
-  expressGraphQL({
-    schema: schema,
-    graphiql: true
-  })
-);
-app.use(errorMW);
 
 app.listen(port);
