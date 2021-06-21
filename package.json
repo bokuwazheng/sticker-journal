@@ -1,6 +1,6 @@
 {
-  "name": "testnodeapp",
-  "description": "test node heroku app",
+  "name": "sticker-journal",
+  "description": "StickerBot API",
   "version": "1.0.0",
   "author": "bokuwazheng",
   "license": "MIT",
