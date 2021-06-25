@@ -1,5 +1,6 @@
 const graphql = require("graphql");
 const { GraphQLObjectType, GraphQLInputObjectType, GraphQLString, GraphQLInt, GraphQLBoolean, GraphQLID } = graphql;
+const resolvers = require("./resolvers.js");
 
 const SenderType = new GraphQLObjectType({
   name: "Sender",
@@ -64,8 +65,28 @@ const ReviewInput = new GraphQLInputObjectType({
   }
 });
 
+
+const SenderWithSuggestionsType = new GraphQLObjectType({
+  name: "SenderWithSuggestions",
+  type: "Query",
+  fields: {
+    user_id: { type: GraphQLID },
+    first_name: { type: GraphQLString },
+    last_name: { type: GraphQLString },
+    username: { type: GraphQLString },
+    is_banned: { type: GraphQLBoolean },
+    chat_id: { type: GraphQLString },
+    notify: { type: GraphQLBoolean },
+    suggestions: {
+      type: new graphql.GraphQLList(SuggestionType),
+      resolve: (sender) => resolvers.getSuggestions(sender.user_id)
+    }
+  }
+});
+
 exports.SenderType = SenderType;
 exports.SenderInput = SenderInput;
 exports.SuggestionType = SuggestionType;
 exports.ReviewType = ReviewType;
 exports.ReviewInput = ReviewInput;
+exports.SenderWithSuggestionsType = SenderWithSuggestionsType;

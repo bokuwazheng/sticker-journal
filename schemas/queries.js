@@ -1,6 +1,7 @@
 const { db } = require("../pgAccess");
 const { GraphQLObjectType, GraphQLID, GraphQLNonNull, GraphQLList } = require("graphql");
-const { SenderType, SuggestionType, ReviewType } = require("./types");
+const { SenderType, SuggestionType, ReviewType, SenderWithSuggestionsType } = require("./types");
+const resolvers = require("./resolvers.js");
 
 const RootQuery = new GraphQLObjectType({
   name: "RootQueryType",
@@ -10,40 +11,19 @@ const RootQuery = new GraphQLObjectType({
     sender: {
       type: SenderType,
       args: { user_id: { type: GraphQLID } },
-      async resolve(parentValue, args) {
-        const query = `SELECT * FROM sender WHERE user_id=$1`;
-        const values = [args.user_id];
+      resolve: (parentValue, args) => resolvers.getSender(args.user_id)
+    },
 
-        try {
-          return await db.one(query, values);
-        } catch (err) {
-          return err;
-        }
-      }
+    senderWithSuggestions: {
+      type: SenderWithSuggestionsType,
+      args: { user_id: { type: GraphQLID } },
+      resolve: (parentValue, args) => resolvers.getSender(args.user_id)
     },
 
     suggester: {
       type: SenderType,
       args: { suggestion_id: { type: GraphQLID } },
-      async resolve(parentValue, args) {
-        const query = `
-        SELECT 
-          * 
-        FROM 
-          sender 
-        WHERE 
-          user_id = (
-            SELECT user_id FROM suggestion WHERE id=$1
-          )
-        `;
-        const values = [args.suggestion_id];
-
-        try {
-          return await db.one(query, values);
-        } catch (err) {
-          return err;
-        }
-      }
+      resolve: (parentValue, args) => resolvers.getSuggester(args.suggestion_id)
     },
 
     senders: {
@@ -114,24 +94,7 @@ const RootQuery = new GraphQLObjectType({
     review: {
       type: ReviewType,
       args: { suggestion_id: { type: GraphQLID } },
-      async resolve(parentValue, args) {
-        const query = `
-        SELECT 
-          * 
-        FROM 
-          review 
-        WHERE 
-          suggestion_id=$1 
-        ORDER BY submitted_at DESC 
-        FETCH FIRST 1 ROW ONLY`;
-        const values = [args.suggestion_id];
-
-        try {
-          return await db.one(query, values);
-        } catch (err) {
-          return err;
-        }
-      }
+      resolve: (parentValue, args) => resolvers.getReview(args.suggestion_id)
     },
 
     newReview: {
