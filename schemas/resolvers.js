@@ -33,6 +33,26 @@ async function getSuggestions(user_id) {
   }
 }
 
+async function getSuggestion(id) {
+  const query = `
+    SELECT
+      id,
+      file_id,
+      made_at,
+      user_id
+    FROM suggestion WHERE id=$1
+    `;
+  const values = [id];
+
+  console.log(id)
+
+  try {
+    return await db.one(query, values);
+  } catch (err) {
+    return err;
+  }
+}
+
 async function getSuggester(suggestion_id) {
   const query = `
     SELECT 
@@ -73,10 +93,30 @@ async function getReview(suggestion_id) {
   }
 }
 
+async function getReviews(suggestion_id) {
+  const query = `
+    SELECT 
+      * 
+    FROM 
+      review 
+    WHERE 
+      suggestion_id=$1
+  `;
+  const values = [suggestion_id];
+
+  try {
+    return await db.many(query, values);
+  } catch (err) {
+    return err;
+  }
+}
+
 module.exports = {
   getSender: getSender,
   getSuggestions: getSuggestions,
+  getSuggestion: getSuggestion,
   getSuggester: getSuggester,
   getReview: getReview,
+  getReviews: getReviews,
 
 }

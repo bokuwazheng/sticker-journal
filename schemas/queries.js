@@ -1,6 +1,6 @@
 const { db } = require("../pgAccess");
 const { GraphQLObjectType, GraphQLID, GraphQLNonNull, GraphQLList } = require("graphql");
-const { SenderType, SuggestionType, ReviewType, SenderWithSuggestionsType } = require("./types");
+const { SenderType, SuggestionType, ReviewType } = require("./types");
 const resolvers = require("./resolvers.js");
 
 const RootQuery = new GraphQLObjectType({
@@ -11,24 +11,18 @@ const RootQuery = new GraphQLObjectType({
     sender: {
       type: SenderType,
       args: { user_id: { type: GraphQLID } },
-      resolve: (parentValue, args) => resolvers.getSender(args.user_id)
-    },
-
-    senderWithSuggestions: {
-      type: SenderWithSuggestionsType,
-      args: { user_id: { type: GraphQLID } },
-      resolve: (parentValue, args) => resolvers.getSender(args.user_id)
+      resolve: (_, args) => resolvers.getSender(args.user_id)
     },
 
     suggester: {
       type: SenderType,
       args: { suggestion_id: { type: GraphQLID } },
-      resolve: (parentValue, args) => resolvers.getSuggester(args.suggestion_id)
+      resolve: (_, args) => resolvers.getSuggester(args.suggestion_id)
     },
 
     senders: {
       type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(SenderType))),
-      async resolve(parentValue, args) {
+      async resolve(_, args) {
         const query = `SELECT * FROM sender`;
 
         try {
@@ -42,23 +36,7 @@ const RootQuery = new GraphQLObjectType({
     suggestion: {
       type: SuggestionType,
       args: { id: { type: GraphQLID } },
-      async resolve(parentValue, args) {
-        const query = `
-          SELECT
-            id,
-            file_id,
-            made_at,
-            user_id
-          FROM suggestion WHERE id=$1
-          `;
-        const values = [args.id];
-
-        try {
-          return await db.one(query, values);
-        } catch (err) {
-          return err;
-        }
-      }
+      resolve: (_, args) => resolvers.getSuggestion(args.id)
     },
 
     newSuggestion: {
@@ -94,7 +72,7 @@ const RootQuery = new GraphQLObjectType({
     review: {
       type: ReviewType,
       args: { suggestion_id: { type: GraphQLID } },
-      resolve: (parentValue, args) => resolvers.getReview(args.suggestion_id)
+      resolve: (_, args) => resolvers.getReview(args.suggestion_id)
     },
 
     newReview: {

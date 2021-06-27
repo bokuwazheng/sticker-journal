@@ -1,20 +1,6 @@
 const graphql = require("graphql");
-const { GraphQLObjectType, GraphQLInputObjectType, GraphQLString, GraphQLInt, GraphQLBoolean, GraphQLID } = graphql;
+const { GraphQLObjectType, GraphQLInputObjectType, GraphQLList, GraphQLString, GraphQLInt, GraphQLBoolean, GraphQLID } = graphql;
 const resolvers = require("./resolvers.js");
-
-const SenderType = new GraphQLObjectType({
-  name: "Sender",
-  type: "Query",
-  fields: {
-    user_id: { type: GraphQLID },
-    first_name: { type: GraphQLString },
-    last_name: { type: GraphQLString },
-    username: { type: GraphQLString },
-    is_banned: { type: GraphQLBoolean },
-    chat_id: { type: GraphQLString },
-    notify: { type: GraphQLBoolean }
-  }
-});
 
 const SenderInput = new GraphQLInputObjectType({
   name: "SenderInput",
@@ -27,17 +13,6 @@ const SenderInput = new GraphQLInputObjectType({
     is_banned: { type: GraphQLBoolean },
     chat_id: { type: GraphQLID },
     notify: { type: GraphQLBoolean }
-  }
-});
-
-const SuggestionType = new GraphQLObjectType({
-  name: "Suggestion",
-  type: "Query",
-  fields: {
-    id: { type: GraphQLID },
-    file_id: { type: GraphQLString },
-    made_at: { type: GraphQLString },
-    user_id: { type: GraphQLID }
   }
 });
 
@@ -65,9 +40,23 @@ const ReviewInput = new GraphQLInputObjectType({
   }
 });
 
+const SuggestionType = new GraphQLObjectType({
+  name: "Suggestion",
+  type: "Query",
+  fields: {
+    id: { type: GraphQLID },
+    file_id: { type: GraphQLString },
+    made_at: { type: GraphQLString },
+    user_id: { type: GraphQLID },
+    reviews: {
+      type: new GraphQLList(ReviewType),
+      resolve: (suggestion) => resolvers.getReviews(suggestion.id)
+    }
+  }
+});
 
-const SenderWithSuggestionsType = new GraphQLObjectType({
-  name: "SenderWithSuggestions",
+const SenderType = new GraphQLObjectType({
+  name: "Sender",
   type: "Query",
   fields: {
     user_id: { type: GraphQLID },
@@ -78,8 +67,12 @@ const SenderWithSuggestionsType = new GraphQLObjectType({
     chat_id: { type: GraphQLString },
     notify: { type: GraphQLBoolean },
     suggestions: {
-      type: new graphql.GraphQLList(SuggestionType),
+      type: new GraphQLList(SuggestionType),
       resolve: (sender) => resolvers.getSuggestions(sender.user_id)
+    },
+    reviews: {
+      type: new GraphQLList(ReviewType),
+      resolve: (suggestion) => resolvers.getReviews(suggestion.id)
     }
   }
 });
@@ -89,4 +82,3 @@ exports.SenderInput = SenderInput;
 exports.SuggestionType = SuggestionType;
 exports.ReviewType = ReviewType;
 exports.ReviewInput = ReviewInput;
-exports.SenderWithSuggestionsType = SenderWithSuggestionsType;
