@@ -13,18 +13,35 @@ async function getSender(id) {
   }
 }
 
-async function getSuggestions(user_id) {
+async function getSuggestions(args) {
   const query = `
     SELECT
-      id,
+      suggestion.id,
       file_id,
       made_at,
-      user_id
-    FROM suggestion WHERE user_id=$1
-    `;
-  const values = [user_id];
-
-  console.log(user_id)
+      suggestion.user_id
+    FROM
+      suggestion
+    LEFT JOIN
+      review ON suggestion.id = review.suggestion_id
+    LEFT JOIN
+      sender ON suggestion.user_id = sender.user_id
+    WHERE
+      (suggestion.user_id=$1 OR $1 IS NULL)
+      tbr_$2
+        AND
+      sender.is_banned = false
+    ORDER BY made_at ASC 
+    LIMIT $3 OFFSET $4`
+      .replace('tbr_$2', args.status === undefined
+        ? ''
+        : 'AND review.result_code IN ( SELECT(unnest($2)) )');
+  const values = [
+    args.user_id,
+    args.status,
+    args.limit,
+    args.offset,
+  ];
 
   try {
     return await db.many(query, values);

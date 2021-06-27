@@ -1,5 +1,5 @@
 const { db } = require("../pgAccess");
-const { GraphQLObjectType, GraphQLID, GraphQLNonNull, GraphQLList } = require("graphql");
+const { GraphQLObjectType, GraphQLID, GraphQLInt, GraphQLNonNull, GraphQLList } = require("graphql");
 const { SenderType, SuggestionType, ReviewType } = require("./types");
 const resolvers = require("./resolvers.js");
 
@@ -37,6 +37,17 @@ const RootQuery = new GraphQLObjectType({
       type: SuggestionType,
       args: { id: { type: GraphQLID } },
       resolve: (_, args) => resolvers.getSuggestion(args.id)
+    },
+
+    suggestions: {
+      type: new GraphQLList(SuggestionType),
+      args: { 
+        user_id: { type: GraphQLID },
+        limit: { type: GraphQLInt },
+        offset: { type: GraphQLInt },
+        status: { type: GraphQLList(GraphQLInt) }
+      },
+      resolve: (_, args) => resolvers.getSuggestions(args)
     },
 
     newSuggestion: {
