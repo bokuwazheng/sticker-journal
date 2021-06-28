@@ -69,10 +69,6 @@ const SenderType = new GraphQLObjectType({
     suggestions: {
       type: new GraphQLList(SuggestionType),
       resolve: (sender) => resolvers.getSuggestions(sender.user_id)
-    },
-    reviews: {
-      type: new GraphQLList(ReviewType),
-      resolve: (suggestion) => resolvers.getReviews(suggestion.id)
     }
   }
 });
