@@ -88,10 +88,10 @@ async function getSuggestionsByIds(ids) {
     FROM suggestion WHERE user_id IN (SELECT (unnest($1)) )
     `;
 
-  console.log(ids);
+  const values = [ids]
 
   try {
-    return await db.many(query, ids);
+    return await db.many(query, values);
   } catch (err) {
     return err;
   }
