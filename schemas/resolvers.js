@@ -4,10 +4,18 @@ async function getSender(id) {
   const query = `SELECT * FROM sender WHERE user_id=$1`;
   const values = [id];
 
-  console.log(id)
-
   try {
     return await db.one(query, values);
+  } catch (err) {
+    return err;
+  }
+}
+
+async function getSenders() {
+  const query = `SELECT * FROM sender`;
+
+  try {
+    return await db.many(query);
   } catch (err) {
     return err;
   }
@@ -65,6 +73,25 @@ async function getSuggestion(id) {
 
   try {
     return await db.one(query, values);
+  } catch (err) {
+    return err;
+  }
+}
+
+async function getSuggestionsByIds(ids) {
+  const query = `
+    SELECT
+      id,
+      file_id,
+      made_at,
+      user_id
+    FROM suggestion WHERE user_id IN (SELECT (unnest($1)) )
+    `;
+
+  console.log(ids);
+
+  try {
+    return await db.many(query, ids);
   } catch (err) {
     return err;
   }
@@ -130,7 +157,9 @@ async function getReviews(suggestion_id) {
 
 module.exports = {
   getSender: getSender,
+  getSenders: getSenders,
   getSuggestions: getSuggestions,
+  getSuggestionsByIds: getSuggestionsByIds,
   getSuggestion: getSuggestion,
   getSuggester: getSuggester,
   getReview: getReview,

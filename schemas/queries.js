@@ -22,15 +22,7 @@ const RootQuery = new GraphQLObjectType({
 
     senders: {
       type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(SenderType))),
-      async resolve(_, args) {
-        const query = `SELECT * FROM sender`;
-
-        try {
-          return await db.any(query);
-        } catch (err) {
-          return err;
-        }
-      }
+      resolve: (_, args) => resolvers.getSenders()
     },
 
     suggestion: {

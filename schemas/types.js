@@ -1,5 +1,6 @@
 const graphql = require("graphql");
 const { GraphQLObjectType, GraphQLInputObjectType, GraphQLList, GraphQLString, GraphQLInt, GraphQLBoolean, GraphQLID } = graphql;
+const DataLoader = require("dataloader");
 const resolvers = require("./resolvers.js");
 
 const SenderInput = new GraphQLInputObjectType({
@@ -68,7 +69,19 @@ const SenderType = new GraphQLObjectType({
     notify: { type: GraphQLBoolean },
     suggestions: {
       type: new GraphQLList(SuggestionType),
-      resolve: (sender) => resolvers.getSuggestions(sender.user_id)
+      resolve: (sender, args, context, info) => {
+        const { dataloaders } = context;
+        let loader = dataloaders.get(context);
+        if (!loader) {
+          loader = new DataLoader(async ids => {
+            const rows = await resolvers.getSuggestionsByIds(ids);
+            const sorted = ids.map(id => rows.filter(x => x.user_id === id));
+            return sorted;
+          })
+          dataloaders.set(context, loader);
+        }
+        return loader.load(sender.user_id);
+      }
     }
   }
 });
