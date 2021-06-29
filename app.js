@@ -39,11 +39,7 @@ if (process.env.Environment === 'Development') {
     '/graphql',
     expressGraphQL({
       schema: schema,
-      graphiql: true,
-      context: {
-        dataloaders: new WeakMap(),
-        
-      }
+      graphiql: true
     })
   );
 }
