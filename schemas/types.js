@@ -51,7 +51,9 @@ const SuggestionType = new GraphQLObjectType({
     user_id: { type: GraphQLID },
     reviews: {
       type: new GraphQLList(ReviewType),
-      resolve: (suggestion) => resolvers.getReviews(suggestion.id)
+      resolve: (suggestion, args, context, info) => {
+        return loaders.getReviews(context).load(suggestion.id);
+      }
     }
   }
 });

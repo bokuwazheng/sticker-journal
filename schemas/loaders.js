@@ -20,7 +20,14 @@ const getSuggestions = factory(async (ids, cts) => {
   return sorted;
 });
 
+const getReviews = factory(async (ids, cts) => {
+  const rows = await resolvers.getReviewsByIds(ids);
+  const sorted = ids.map(id => rows.filter(x => x.suggestion_id === id));
+  return sorted;
+});
+
 module.exports = {
   getSuggestions: getSuggestions,
+  getReviews: getReviews,
 
 }

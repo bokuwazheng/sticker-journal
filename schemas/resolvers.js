@@ -1,4 +1,4 @@
-const { db } = require("../pgAccess");
+const { db, pgp } = require("../pgAccess");
 
 async function getSender(id) {
   const query = `SELECT * FROM sender WHERE user_id=$1`;
@@ -36,19 +36,21 @@ async function getSuggestions(args) {
       sender ON suggestion.user_id = sender.user_id
     WHERE
       (suggestion.user_id=$1 OR $1 IS NULL)
-      tbr_$2
+      $5:raw
         AND
       sender.is_banned = false
-    ORDER BY made_at ASC 
-    LIMIT $3 OFFSET $4`
-      .replace('tbr_$2', args.status === undefined
-        ? ''
-        : 'AND review.result_code IN ( SELECT(unnest($2)) )');
+    ORDER BY made_at ASC
+    LIMIT $3 OFFSET $4
+    `;
+  const where = args.status !== undefined
+    ? pgp.as.format('AND review.result_code IN ($1:list)', args.status)
+    : '';
   const values = [
     args.user_id,
     args.status,
     args.limit,
     args.offset,
+    where
   ];
 
   try {
@@ -85,7 +87,10 @@ async function getSuggestionsByIds(ids) {
       file_id,
       made_at,
       user_id
-    FROM suggestion WHERE user_id IN (SELECT (unnest($1)) )
+    FROM 
+      suggestion 
+    WHERE 
+      user_id IN ($1:list)
     `;
 
   const values = [ids]
@@ -126,7 +131,7 @@ async function getReview(suggestion_id) {
     WHERE 
       suggestion_id=$1 
     ORDER BY submitted_at DESC 
-    FETCH FIRST 1 ROW ONLY
+    LIMIT 1
   `;
   const values = [suggestion_id];
 
@@ -155,6 +160,24 @@ async function getReviews(suggestion_id) {
   }
 }
 
+async function getReviewsByIds(ids) {
+  const query = `
+    SELECT 
+      * 
+    FROM 
+      review 
+    WHERE 
+      suggestion_id IN ($1:list)
+  `;
+  const values = [ids];
+
+  try {
+    return await db.many(query, values);
+  } catch (err) {
+    return err;
+  }
+}
+
 module.exports = {
   getSender: getSender,
   getSenders: getSenders,
@@ -164,5 +187,6 @@ module.exports = {
   getSuggester: getSuggester,
   getReview: getReview,
   getReviews: getReviews,
+  getReviewsByIds: getReviewsByIds,
 
 }
