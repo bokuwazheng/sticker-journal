@@ -16,7 +16,7 @@ const schema = new GraphQLSchema({
   mutation
 });
 
-const jwtMiddleware = expressJwt({ secret: process.env.JwtSecret, algorithms: ['HS256']}).unless({ path: ['/login'] });
+const jwtMiddleware = expressJwt({ secret: process.env.JWT_SECRET, algorithms: ['HS256']}).unless({ path: ['/login'] });
 
 const errorMiddleware = function(err, req, res, next) {
   console.error(err.stack);
@@ -34,7 +34,7 @@ process.on('uncaughtException', error => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-if (process.env.Environment === 'Development') {
+if (process.env.ENVIRONMENT === 'Development') {
   app.use(
     '/graphql',
     expressGraphQL({
@@ -55,10 +55,10 @@ else {
 
 app.get('/login', (req, res) => {
   const { login, password } = req.body;
-  if (login !== process.env.BotLogin || password !== process.env.BotPassword) {
+  if (login !== process.env.BOT_LOGIN || password !== process.env.BOT_PASSWORD) {
     return res.status(401).send('Wrong login or password.');
   }
-  const token = jwt.sign(login, process.env.JwtSecret);
+  const token = jwt.sign(login, process.env.JWT_SECRET);
   res.send({ token });
 });
 

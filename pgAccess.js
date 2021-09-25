@@ -13,11 +13,11 @@ types.setTypeParser(types.builtins.TIMESTAMPTZ, function(val) {
 });
 
 const config = {
-  host: process.env.DbHost,
-  port: process.env.DbPort,
-  database: process.env.Db,
-  user: process.env.DbUser,
-  password: process.env.DbPassword
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD
 };
 
 const db = pgp(config);

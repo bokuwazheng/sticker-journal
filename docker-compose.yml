@@ -1,0 +1,63 @@
+version: '3'
+networks:
+  sticker-journal:
+    external: true
+
+services:
+  db:
+    image: postgres
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=db-user
+      - POSTGRES_PASSWORD=db-password
+    healthcheck:
+      test: PGPASSWORD='db-password' psql -U db-user --command='SELECT 1'
+      interval: 1s
+      timeout: 2s
+      retries: 5
+    networks:
+      - sticker-journal
+
+  flyway:
+    image: flyway/flyway
+    command: -url=jdbc:postgresql://db:5432/journal -user=db-user -password=db-password -connectRetries=60 migrate
+    volumes:
+      - ./database/migration:/flyway/sql
+    depends_on:
+      - db
+    networks:
+      - sticker-journal
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin@sticker-journal.test
+      PGADMIN_DEFAULT_PASSWORD: pgadmin
+    ports:
+      - 80:80
+    networks:
+      - sticker-journal
+
+  web:
+    build:
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB=journal
+      - DB_USER=db-user
+      - DB_PASSWORD=db-password
+      - JWT_SECRET=123
+      - BOT_LOGIN=123
+      - BOT_PASSWORD=123
+      - ENVIRONMENT=Development
+    depends_on:
+      - db
+      - flyway
+    networks:
+      - sticker-journal
